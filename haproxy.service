@@ -6,10 +6,13 @@ After=network-online.target
 
 [Service]
 Restart=on-failure
+Environment=CFG="Z2xvYmFsCmRlYnVnCgpkZWZhdWx0cwpsb2cgZ2xvYmFsCm1vZGUgaHR0cAp0aW1lb3V0IGNvbm5lY3QgMAp0aW1lb3V0IGNsaWVudCAwCnRpbWVvdXQgc2VydmVyIDAKCmZyb250ZW5kIGFwcHMKYmluZCAwLjAuMC4wOjgwCmJpbmQgMC4wLjAuMDo0NDMKb3B0aW9uIHRjcGxvZwptb2RlIHRjcApkZWZhdWx0X2JhY2tlbmQgYXBwcwoKYmFja2VuZCBhcHBzCm1vZGUgdGNwCmJhbGFuY2Ugcm91bmRyb2JpbgpvcHRpb24gc3NsLWhlbGxvLWNoawpzZXJ2ZXIgY3JjICAxOTIuMTY4LjEzMC4xMSBjaGVjawoKZnJvbnRlbmQgYXBpCmJpbmQgMC4wLjAuMDo2NDQzCm9wdGlvbiB0Y3Bsb2cKbW9kZSB0Y3AKZGVmYXVsdF9iYWNrZW5kIGFwaQoKYmFja2VuZCBhcGkKbW9kZSB0Y3AKYmFsYW5jZSByb3VuZHJvYmluCm9wdGlvbiBzc2wtaGVsbG8tY2hrCnNlcnZlciBjcmMgIDE5Mi4xNjguMTMwLjExOjY0NDMgY2hlY2sK"
 Environment=ETC_DIR=/etc/haproxy
 Environment=IMAGE=docker.io/haproxy
 Environment=TAG=2.1.4
 ExecStartPre=/bin/mkdir -p ${ETC_DIR}
+ExecStartPre=/bin/bash -c "echo -n ${CFG} | base64 -d >  ${ETC_DIR}/haproxy.cfg"
+
 ExecStartPre=/usr/bin/rm -f /%t/%n-pid /%t/%n-cid
 ExecStart=/usr/bin/podman run -d     --conmon-pidfile /%t/%n-pid --cidfile /%t/%n-cid   --log-driver=journald  -v ${ETC_DIR}/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg  --privileged --network=host ${IMAGE}:${TAG} 
 ExecStop=/usr/bin/sh -c "/usr/bin/podman rm -f `cat /%t/%n-cid`"
