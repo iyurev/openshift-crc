@@ -1,0 +1,21 @@
+[Unit]
+Description="HAproxy LB"
+Documentation=http://www.haproxy.org
+Requires=network-online.target
+After=network-online.target
+
+[Service]
+Restart=on-failure
+Environment=ETC_DIR=/etc/haproxy
+Environment=IMAGE=docker.io/haproxy
+Environment=TAG=2.1.4
+ExecStartPre=/bin/mkdir -p ${ETC_DIR}
+ExecStartPre=/usr/bin/rm -f /%t/%n-pid /%t/%n-cid
+ExecStart=/usr/bin/podman run -d     --conmon-pidfile /%t/%n-pid --cidfile /%t/%n-cid   --log-driver=journald  -v ${ETC_DIR}/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg  --privileged --network=host ${IMAGE}:${TAG} 
+ExecStop=/usr/bin/sh -c "/usr/bin/podman rm -f `cat /%t/%n-cid`"
+KillMode=none
+Type=forking
+PIDFile=/%t/%n-pid
+
+[Install]
+WantedBy=multi-user.target
